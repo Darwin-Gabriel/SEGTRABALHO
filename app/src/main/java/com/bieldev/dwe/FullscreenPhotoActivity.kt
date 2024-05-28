@@ -22,4 +22,4 @@ class FullscreenPhotoActivity : AppCompatActivity() {
             finish()
         }
     }
-}
+} //
