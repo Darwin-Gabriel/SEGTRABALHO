@@ -62,15 +62,12 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         captureButton.setOnClickListener {
-            if (coordinates == "unknown") {
-                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                    locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, this, null)
-                }
-                Toast.makeText(this, "Tentando obter localização atual. Por favor, tente novamente.", Toast.LENGTH_SHORT).show()
-            } else {
-                takePhoto()
+            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            lastKnownLocation?.let {
+                coordinates = "${it.latitude}, ${it.longitude}"
             }
+            Log.d("coordinates", "coordinates: ${coordinates}")
+            takePhoto()
         }
     }
 

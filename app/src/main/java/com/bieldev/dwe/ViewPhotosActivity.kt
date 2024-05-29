@@ -74,7 +74,7 @@ class ViewPhotosActivity : AppCompatActivity() {
             .build()
 
         val request = Request.Builder()
-            .url("https://api.bielsv.net/upload")
+            .url("http://c4f6-179-70-244-50.ngrok-free.app/upload")
             .post(requestBody)
             .build()
 
