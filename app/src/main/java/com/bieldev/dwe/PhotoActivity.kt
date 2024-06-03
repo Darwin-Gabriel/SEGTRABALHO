@@ -44,12 +44,7 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
         currentStep = intent.getIntExtra("STEP", 0)
 
         locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 1)
-        } else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, this)
-        }
+        checkLocationPermissions()
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -62,23 +57,53 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         captureButton.setOnClickListener {
-            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            lastKnownLocation?.let {
-                coordinates = "${it.latitude}, ${it.longitude}"
-            }
-            Log.d("coordinates", "coordinates: ${coordinates}")
+            updateCoordinatesWithFallback()
             takePhoto()
         }
     }
 
+    private fun checkLocationPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, this)
+        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, this)
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 1)
+        }
+    }
+
+    private fun updateCoordinatesWithFallback() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+            Log.d("coordinates", "fine")
+            lastKnownLocation?.let {
+                coordinates = "${it.latitude}, ${it.longitude}"
+            }
+        }
+
+        if (coordinates == "unknown" && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            Log.d("coordinates", "aprox")
+            lastKnownLocation?.let {
+                coordinates = "${it.latitude}, ${it.longitude}"
+            }
+        }
+
+        Log.d("coordinates", "coordinates: ${coordinates}")
+    }
+
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
-        cameraProviderFuture.addListener({
+        cameraProviderFuture.addListener(Runnable {
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(viewFinder.surfaceProvider)
-            }
+
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                }
 
             imageCapture = ImageCapture.Builder().build()
 
@@ -88,12 +113,13 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     this, cameraSelector, preview, imageCapture)
-            } catch (exc: Exception) {
+            } catch(exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
         }, ContextCompat.getMainExecutor(this))
     }
+
 
     private fun takePhoto() {
         val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
@@ -146,6 +172,10 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
             4 -> PhotoStorage.photoStep4 = uri
         }
 
+        coordinates = "unknown"
+        Log.d("coordinatesreset", "reset")
+        Log.d("coordinatesreset", "valor: ${coordinates}")
+
         finish()
     }
 
@@ -183,7 +213,7 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
 
     override fun onLocationChanged(location: Location) {
         coordinates = "${location.latitude}, ${location.longitude}"
-        Log.d("coordinates", "coordinates: ${coordinates}")
+        Log.d("coordinatesupd", "coordinates: ${coordinates}")
     }
 
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
