@@ -229,3 +229,4 @@ class PhotoActivity : AppCompatActivity(), LocationListener {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 }
+// Adição de localização aproximada
