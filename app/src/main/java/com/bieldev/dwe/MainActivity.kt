@@ -16,6 +16,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.button_step3).setOnClickListener { startPhotoCapture(3) }
         findViewById<Button>(R.id.button_step4).setOnClickListener { startPhotoCapture(4) }
         findViewById<Button>(R.id.button_view_photos).setOnClickListener { viewAllPhotos() }
+        findViewById<Button>(R.id.button_risks).setOnClickListener {
+            val intent = Intent(this, RiskActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun startPhotoCapture(step: Int) {

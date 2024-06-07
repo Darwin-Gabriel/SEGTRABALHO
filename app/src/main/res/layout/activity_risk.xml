@@ -1,0 +1,404 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/text_view_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DTS - Discussão de Trabalho Seguro"
+            android:textSize="24sp"
+            android:textColor="@color/dark_green"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Passos do Trabalho"
+            android:layout_marginTop="18dp"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/checkBox_vehicle_displacement"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Deslocamento com Veículo" />
+
+        <CheckBox
+            android:id="@+id/checkBox_signaling_on_the_road"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sinalização na via para Execução de Atividade" />
+
+        <CheckBox
+            android:id="@+id/checkBox_tool_mobilization"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mobilização de Ferramentas" />
+
+        <CheckBox
+            android:id="@+id/checkBox_manual_excavation_with_tools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Escavação Manual com Ferramentas" />
+
+        <CheckBox
+            android:id="@+id/checkBox_hd_installation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Instalação de HD" />
+
+        <CheckBox
+            android:id="@+id/checkBox_pipe_installation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Assentamento de Tubo" />
+
+        <CheckBox
+            android:id="@+id/checkBox_backfilling"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reaterro" />
+
+        <CheckBox
+            android:id="@+id/checkBox_demobilization_cleaning"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Desmobilização/Limpeza" />
+
+        <CheckBox
+            android:id="@+id/checkBox_material_removal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retirada de Material" />
+
+        <CheckBox
+            android:id="@+id/checkBox_vehicle_displacement_end"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Deslocamento com Veículo" />
+
+        <EditText
+            android:id="@+id/edit_text_work_steps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Caso não tenha digite aqui" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Riscos"
+            android:layout_marginTop="18dp"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/checkBox_vehicle_collision"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Colisão de Veículos" />
+
+        <CheckBox
+            android:id="@+id/checkBox_pedestrian_accident"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Atropelamento" />
+
+        <CheckBox
+            android:id="@+id/checkBox_collision"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Colisão" />
+
+        <!-- Novas caixas de seleção para os riscos -->
+        <CheckBox
+            android:id="@+id/checkBox_sprained_ankle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Torção no Pé" />
+
+        <CheckBox
+            android:id="@+id/checkBox_falling_object"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Queda de Objeto" />
+
+        <CheckBox
+            android:id="@+id/checkBox_fall_on_same_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Queda em Nível" />
+
+        <CheckBox
+            android:id="@+id/checkBox_open_space"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Espaço a Céu Aberto" />
+
+        <CheckBox
+            android:id="@+id/checkBox_fall_from_height"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Queda em Altura" />
+
+        <CheckBox
+            android:id="@+id/checkBox_particle_in_eye"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Partícula nos Olhos" />
+
+        <CheckBox
+            android:id="@+id/checkBox_dust_exposure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Exposição a Poeira" />
+
+        <CheckBox
+            android:id="@+id/checkBox_outdoor_work"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Trabalho a Céu Aberto" />
+
+        <CheckBox
+            android:id="@+id/checkBox_hand_dislocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Luxação na Mão" />
+
+        <CheckBox
+            android:id="@+id/checkBox_gas_exposure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gás" />
+
+        <CheckBox
+            android:id="@+id/checkBox_noise_exposure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ruído" />
+
+        <CheckBox
+            android:id="@+id/checkBox_humidity_exposure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Umidade" />
+
+        <CheckBox
+            android:id="@+id/checkBox_cut"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Corte" />
+
+        <EditText
+            android:id="@+id/edit_text_risk"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Caso não tenha digite aqui" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nível do Risco"
+            android:textSize="18sp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/checkBox_high"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alto" />
+
+        <CheckBox
+            android:id="@+id/checkBox_medium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Médio" />
+
+        <CheckBox
+            android:id="@+id/checkBox_low"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Baixo" />
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Barreira de Controle"
+            android:textSize="18sp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/checkBox_speed_limit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Limite de Velocidade da Via" />
+
+        <CheckBox
+            android:id="@+id/checkBox_vehicle_barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Veículo Barreira" />
+
+        <CheckBox
+            android:id="@+id/checkBox_signage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Placas de Sinalização" />
+
+        <CheckBox
+            android:id="@+id/checkBox_ground_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Atenção ao Desnível do Solo" />
+
+        <CheckBox
+            android:id="@+id/checkBox_organized_tools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ferramentas Organizadas" />
+
+        <CheckBox
+            android:id="@+id/checkBox_technical_probe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sondagem Técnica" />
+
+        <CheckBox
+            android:id="@+id/checkBox_sunscreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Protetor Solar" />
+
+        <CheckBox
+            android:id="@+id/checkBox_speed_limit_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Limite de Velocidade Da Via" />
+
+        <CheckBox
+            android:id="@+id/checkBox_not_applicable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Não Aplicável" />
+
+        <EditText
+            android:id="@+id/edit_text_control_barrier"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Caso não tenha digite aqui" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Barreiras de Proteção"
+            android:textSize="18sp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp" />
+
+        <CheckBox
+            android:id="@+id/checkBox_safety_belt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cinto de Segurança" />
+
+        <CheckBox
+            android:id="@+id/checkBox_sonic_alarm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alarme Sonoro" />
+
+        <CheckBox
+            android:id="@+id/checkBox_safety_gloves"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Luva de Segurança" />
+
+        <CheckBox
+            android:id="@+id/checkBox_safety_boots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bota de Segurança" />
+
+        <CheckBox
+            android:id="@+id/checkBox_helmet_with_jugular"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capacete com Jugular" />
+
+        <CheckBox
+            android:id="@+id/checkBox_sunscreen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Protetor Solar" />
+
+        <CheckBox
+            android:id="@+id/checkBox_safety_glasses"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Óculos de Segurança" />
+
+        <CheckBox
+            android:id="@+id/checkBox_mask_pff2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mascara PFF2" />
+
+        <CheckBox
+            android:id="@+id/checkBox_technical_control"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Controle Técnico" />
+
+        <CheckBox
+            android:id="@+id/checkBox_ear_protector"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Protetor Auricular" />
+
+        <CheckBox
+            android:id="@+id/checkBox_pvc_gloves_boots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Luva e Bota de PVC" />
+
+        <CheckBox
+            android:id="@+id/checkBox_uniform_arab_touque"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Uniforme/Touca Arabe" />
+
+        <CheckBox
+            android:id="@+id/checkBox_vaqueta_gloves"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Luva Vaqueta" />
+
+        <CheckBox
+            android:id="@+id/checkBox_uniform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Uniforme" />
+
+        <Button
+            android:id="@+id/button_submit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enviar" />
+
+    </LinearLayout>
+
+</ScrollView>
