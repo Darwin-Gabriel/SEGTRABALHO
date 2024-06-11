@@ -36,6 +36,7 @@
         <activity android:name=".FullscreenPhotoActivity" />
         <activity android:name=".ViewPhotosActivity" />
         <activity android:name=".RiskActivity" />
+        <activity android:name=".QuestionActivity" />
     </application>
 
 </manifest>

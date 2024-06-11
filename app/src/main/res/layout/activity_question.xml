@@ -1,0 +1,48 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/text_view_question"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        android:textSize="24sp"
+        android:fontFamily="Roboto"
+        android:layout_marginTop="36dp"
+        android:text="A Obra está organizada e limpa?" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/text_view_question"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="50dp"> <!-- Aumente este valor para aumentar o espaço -->
+
+        <Button
+            android:id="@+id/button_yes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SIM"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/rounded_rectangle_button_purple" />
+
+        <View
+            android:layout_width="16dp"
+            android:layout_height="1dp" />
+
+        <Button
+            android:id="@+id/button_no"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="NÃO"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/rounded_rectangle_button_purple" />
+    </LinearLayout>
+
+</RelativeLayout>

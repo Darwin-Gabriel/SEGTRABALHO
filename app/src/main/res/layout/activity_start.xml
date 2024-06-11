@@ -28,7 +28,7 @@
         android:layout_below="@id/textView"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="24dp"
-        android:text="Iniciar Aplicativo"
+        android:text="  Iniciar Aplicativo  "
         android:textColor="#FFFFFF"
         android:background="@drawable/rounded_rectangle_button_purple" />
 </RelativeLayout>
