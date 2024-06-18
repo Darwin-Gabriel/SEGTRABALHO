@@ -1,232 +1,106 @@
 package com.bieldev.dwe
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
+import android.provider.MediaStore
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
-import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
-class PhotoActivity : AppCompatActivity(), LocationListener {
-    private lateinit var viewFinder: PreviewView
-    private lateinit var imageCapture: ImageCapture
-    private lateinit var outputDirectory: File
-    private lateinit var cameraExecutor: ExecutorService
-    private lateinit var locationManager: LocationManager
-    private var coordinates: String = "unknown"
-    private var currentStep: Int = 0
+class PhotoActivity : AppCompatActivity() {
+
+    private lateinit var imageView: ImageView
+    private lateinit var buttonTakePhoto: Button
+    private lateinit var buttonUsePhoto: Button
+    private lateinit var buttonRetakePhoto: Button
+    private val REQUEST_IMAGE_CAPTURE = 1
+    private val REQUEST_CAMERA_PERMISSION = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo)
 
-        viewFinder = findViewById(R.id.viewFinder)
-        val captureButton: Button = findViewById(R.id.capture_button)
+        imageView = findViewById(R.id.photo_imageView)
+        buttonTakePhoto = findViewById(R.id.capture_button)
+        buttonUsePhoto = findViewById(R.id.use_this_button)
+        buttonRetakePhoto = findViewById(R.id.take_another_button)
 
-        currentStep = intent.getIntExtra("STEP", 0)
+        buttonUsePhoto.visibility = View.GONE
+        buttonRetakePhoto.visibility = View.GONE
 
-        locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-        checkLocationPermissions()
-
-        if (allPermissionsGranted()) {
-            startCamera()
-        } else {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                this, arrayOf(Manifest.permission.CAMERA),
+                REQUEST_CAMERA_PERMISSION
+            )
+        } else {
+            takePhoto()
         }
 
-        outputDirectory = getOutputDirectory()
-        cameraExecutor = Executors.newSingleThreadExecutor()
+        buttonUsePhoto.setOnClickListener {
+            Toast.makeText(this, "Photo selected!", Toast.LENGTH_SHORT).show()
+            // Handle the logic to use the selected photo here
+        }
 
-        captureButton.setOnClickListener {
-            updateCoordinatesWithFallback()
+        buttonRetakePhoto.setOnClickListener {
+            imageView.setImageBitmap(null)
+            buttonUsePhoto.visibility = View.GONE
+            buttonRetakePhoto.visibility = View.GONE
             takePhoto()
         }
     }
 
-    private fun checkLocationPermissions() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, this)
-        } else if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, this)
-        } else {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), 1)
-        }
-    }
-
-    private fun updateCoordinatesWithFallback() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-            Log.d("coordinates", "fine")
-            lastKnownLocation?.let {
-                coordinates = "${it.latitude}, ${it.longitude}"
-            }
-        }
-
-        if (coordinates == "unknown" && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            val lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-            Log.d("coordinates", "aprox")
-            lastKnownLocation?.let {
-                coordinates = "${it.latitude}, ${it.longitude}"
-            }
-        }
-
-        Log.d("coordinates", "coordinates: ${coordinates}")
-    }
-
-
-    private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
-        cameraProviderFuture.addListener(Runnable {
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(viewFinder.surfaceProvider)
-                }
-
-            imageCapture = ImageCapture.Builder().build()
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture)
-            } catch(exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
-            }
-
-        }, ContextCompat.getMainExecutor(this))
-    }
-
-
     private fun takePhoto() {
-        val timestamp = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis())
-
-        val photoFile = File(outputDirectory, "${timestamp}_$coordinates.jpg")
-
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-
-        imageCapture.takePicture(
-            outputOptions, ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageSavedCallback {
-                override fun onError(exc: ImageCaptureException) {
-                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
-                }
-
-                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val savedUri = output.savedUri ?: Uri.fromFile(photoFile)
-                    val msg = "Photo capture succeeded: $savedUri"
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
-                    showPhoto(savedUri)
-                }
-            })
-    }
-
-
-    private fun showPhoto(uri: Uri) {
-        val photoLayout: RelativeLayout = findViewById(R.id.photo_layout)
-        val photoImageView: ImageView = findViewById(R.id.photo_imageView)
-        val useThisButton: Button = findViewById(R.id.use_this_button)
-        val takeAnotherButton: Button = findViewById(R.id.take_another_button)
-
-        photoImageView.setImageURI(uri)
-        photoLayout.visibility = View.VISIBLE
-
-        useThisButton.setOnClickListener {
-            savePhotoAndProceed(uri)
+        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        if (takePictureIntent.resolveActivity(packageManager) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
+        } else {
+            Toast.makeText(this, "Unable to open camera", Toast.LENGTH_SHORT).show()
         }
-
-        takeAnotherButton.setOnClickListener {
-            photoLayout.visibility = View.GONE
-            startCamera()
-        }
-    }
-
-    private fun savePhotoAndProceed(uri: Uri) {
-        when (currentStep) {
-            1 -> PhotoStorage.photoStep1 = uri
-            2 -> PhotoStorage.photoStep2 = uri
-            3 -> PhotoStorage.photoStep3 = uri
-            4 -> PhotoStorage.photoStep4 = uri
-        }
-
-        coordinates = "unknown"
-        Log.d("coordinatesreset", "reset")
-        Log.d("coordinatesreset", "valor: ${coordinates}")
-
-        finish()
-    }
-
-    private fun getOutputDirectory(): File {
-        val mediaDir = externalMediaDirs.firstOrNull()?.let {
-            File(it, resources.getString(R.string.app_name)).apply { mkdirs() }
-        }
-        return mediaDir ?: filesDir
-    }
-
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        requestCode: Int, permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
-                startCamera()
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                takePhoto()
             } else {
-                Toast.makeText(this,
-                    "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT).show()
-                finish()
+                Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
-    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                REQUEST_IMAGE_CAPTURE -> {
+                    val extras = data?.extras
+                    val imageBitmap = extras?.get("data") as Bitmap
+                    imageView.setImageBitmap(imageBitmap)
+                    buttonUsePhoto.visibility = View.VISIBLE
+                    buttonRetakePhoto.visibility = View.VISIBLE
+                    buttonTakePhoto.visibility = View.GONE
 
-    override fun onLocationChanged(location: Location) {
-        coordinates = "${location.latitude}, ${location.longitude}"
-        Log.d("coordinatesupd", "coordinates: ${coordinates}")
-    }
-
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-
-    override fun onProviderEnabled(provider: String) {}
-
-    override fun onProviderDisabled(provider: String) {}
-
-    companion object {
-        private const val TAG = "CameraXApp"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-        private const val REQUEST_CODE_PERMISSIONS = 10
-        private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
+                    // Iniciar PtQuestionActivity após a foto ser tirada
+                    val intent = Intent(this, PtQuestionActivity::class.java)
+                    startActivity(intent)
+                }
+            }
+        }
     }
 }
-// Adição de localização aproximada
