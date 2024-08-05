@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- activity_permission.xml -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/relativeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,29 +10,33 @@
         android:id="@+id/text_view_question"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:gravity="center"
-        android:textSize="24sp"
-        android:fontFamily="Roboto"
         android:layout_marginTop="36dp"
-        android:text="Tem PT (permissão de Trabalho)?" />
+        android:fontFamily="Roboto"
+        android:gravity="center"
+        android:text="Tem PT (permissão de Trabalho)?"
+        android:textSize="24sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/text_view_question"
-        android:orientation="horizontal"
+        android:layout_marginTop="50dp"
         android:gravity="center"
-        android:layout_marginTop="50dp">
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/text_view_question">
 
         <Button
             android:id="@+id/button_yes"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@drawable/rounded_rectangle_button_purple"
             android:text="SIM"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/rounded_rectangle_button_purple" />
+            android:textColor="#FFFFFF" />
 
         <View
             android:layout_width="16dp"
@@ -41,9 +47,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:background="@drawable/rounded_rectangle_button_purple"
             android:text="NÃO"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/rounded_rectangle_button_purple" />
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

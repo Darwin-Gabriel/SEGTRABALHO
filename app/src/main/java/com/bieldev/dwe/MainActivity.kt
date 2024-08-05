@@ -13,11 +13,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        findViewById<Button>(R.id.button_step1).setOnClickListener { startPhotoCapture(1) }
-        findViewById<Button>(R.id.button_step2).setOnClickListener { startPhotoCapture(2) }
-        findViewById<Button>(R.id.button_step3).setOnClickListener { startPhotoCapture(3) }
-        findViewById<Button>(R.id.button_step4).setOnClickListener { startPhotoCapture(4) }
-        findViewById<Button>(R.id.button_view_photos).setOnClickListener { viewAllPhotos() }
         findViewById<Button>(R.id.button_risks).setOnClickListener {
             val intent = Intent(this, RiskActivity::class.java)
             startActivity(intent)

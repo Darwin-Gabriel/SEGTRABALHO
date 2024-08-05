@@ -1,24 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- activity_risk.xml -->
 <!-- activity_risk.xml -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/scrollView2"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+    <LinearLayout
+        android:id="@+id/linearLayout4"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <!-- Cabeçalho -->
         <TextView
             android:id="@+id/header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="SST"
             android:textSize="24sp"
-            android:layout_marginTop="16dp"
             android:textStyle="bold" />
 
         <!-- Adicionado android:layout_marginTop -->
@@ -26,22 +33,22 @@
             android:id="@+id/edit_text_work_number"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Número da Obra"
-            android:layout_marginTop="24dp" />
+            android:layout_marginTop="24dp"
+            android:hint="Número da Obra" />
 
         <EditText
             android:id="@+id/edit_text_street_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nome da Rua"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"
+            android:hint="Nome da Rua" />
 
         <EditText
             android:id="@+id/edit_text_supervisor_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nome do Encarregado"
-            android:layout_marginTop="16dp" />
+            android:layout_marginTop="16dp"
+            android:hint="Nome do Encarregado" />
 
         <Button
             android:id="@+id/button_next"
@@ -49,13 +56,13 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/textView"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="24dp"
             android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/rounded_rectangle_button_purple"
             android:gravity="center"
             android:text="Próximo"
-            android:textColor="#FFFFFF"
-            android:background="@drawable/rounded_rectangle_button_purple" />
+            android:textColor="#FFFFFF" />
 
     </LinearLayout>
 
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
