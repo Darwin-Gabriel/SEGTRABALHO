@@ -1,4 +1,3 @@
-// PtQuestionActivity.kt
 package com.bieldev.dwe
 
 import android.content.DialogInterface
@@ -86,7 +85,7 @@ class PtQuestionActivity : AppCompatActivity() {
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
         val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
         FileOutputStream(imageFile).use { out ->
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Set quality to 100
         }
         Log.d(TAG, "Photo saved at: ${imageFile.absolutePath}")
         return imageFile.absolutePath

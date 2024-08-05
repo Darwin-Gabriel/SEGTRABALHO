@@ -1,4 +1,3 @@
-// QuestionActivity.kt
 package com.bieldev.dwe
 
 import android.Manifest
@@ -15,17 +14,21 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import okhttp3.*
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
 
 class QuestionActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val REQUEST_IMAGE_CAPTURE = 1
     private val REQUEST_LOCATION_PERMISSION = 101
+    private var currentPhotoPath: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,15 +69,17 @@ class QuestionActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
         } else {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
+                if (location != null) {
                     val locationString = "Lat_${location.latitude}_Lon_${location.longitude}"
                     val photoPath = savePhotoWithLocation(imageBitmap, locationString)
-                    navigateToPtQuestionActivity(photoPath, locationString)
+                    uploadFileToServer(photoPath)
+                } else {
+                    fusedLocationClient.lastLocation.addOnFailureListener {
+                        Toast.makeText(this, "Failed to get precise location, using approximate location", Toast.LENGTH_SHORT).show()
+                        val photoPath = savePhotoWithLocation(imageBitmap, "ApproximateLocation")
+                        uploadFileToServer(photoPath)
+                    }
                 }
-            }.addOnFailureListener {
-                Toast.makeText(this, "Failed to get location", Toast.LENGTH_SHORT).show()
-                val photoPath = savePhotoWithLocation(imageBitmap, "UnknownLocation")
-                navigateToPtQuestionActivity(photoPath, "UnknownLocation")
             }
         }
     }
@@ -87,26 +92,52 @@ class QuestionActivity : AppCompatActivity() {
         FileOutputStream(imageFile).use { out ->
             imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
-        return imageFile.absolutePath
+        currentPhotoPath = imageFile.absolutePath
+        return currentPhotoPath
     }
 
-    private fun navigateToPtQuestionActivity(photoPath: String, locationString: String) {
+    private fun uploadFileToServer(filePath: String) {
+        val client = OkHttpClient()
+        val file = File(filePath)
+        val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
+        val multipartBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("file", file.name, requestBody)
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.bielsv.net/upload")
+            .post(multipartBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+                runOnUiThread {
+                    Toast.makeText(this@QuestionActivity, "Failed to upload photo", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    runOnUiThread {
+                        Toast.makeText(this@QuestionActivity, "Photo uploaded successfully", Toast.LENGTH_SHORT).show()
+                        navigateToPtQuestionActivity()
+                    }
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(this@QuestionActivity, "Failed to upload photo", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun navigateToPtQuestionActivity() {
         val intent = Intent(this, PtQuestionActivity::class.java).apply {
-            putExtra("firstPhotoPath", photoPath)
-            putExtra("location", locationString)
+            putExtra("firstPhotoPath", currentPhotoPath)
+            putExtra("location", "Lat_Lon") // Replace with actual location if needed
         }
         startActivity(intent)
-        finish()
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_LOCATION_PERMISSION) {
-            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-                // Permission was granted
-            } else {
-                Toast.makeText(this, "Location permission required to tag photos with location.", Toast.LENGTH_SHORT).show()
-            }
-        }
     }
 }
