@@ -1,3 +1,14 @@
 <resources>
-    <string name="app_name">Dwe</string>
+    <string name="app_name">Darwin Engenharia</string>
+    <string name="photo">Photo</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="use_photo">Use Photo</string>
+    <string name="retake_photo">Retake Photo</string>
+    <string-array name="pt_type_array">
+        <item>Içamento de Carga</item>
+        <item>Eletricidade</item>
+        <item>Trabalho em Altura</item>
+        <item>Trabalho em Espaço Confinado</item>
+    </string-array>
 </resources>
+

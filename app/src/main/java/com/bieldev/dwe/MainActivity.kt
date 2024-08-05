@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import okhttp3.*
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,6 +22,9 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, RiskActivity::class.java)
             startActivity(intent)
         }
+
+        // Chame a função sendRequest aqui se quiser que ela seja executada ao criar a atividade
+        sendRequest()
     }
 
     private fun startPhotoCapture(step: Int) {
@@ -31,5 +36,34 @@ class MainActivity : AppCompatActivity() {
     private fun viewAllPhotos() {
         val intent = Intent(this, ViewPhotosActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun sendRequest() {
+        val client = OkHttpClient()
+
+        val requestBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart("username", "cabr")
+            .addFormDataPart("password", "1")
+            .build()
+
+        val request = Request.Builder()
+            .url("https://api.bielsv.net/") // Substitua com a URL do seu servidor
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (!response.isSuccessful) {
+                    throw IOException("Unexpected code $response")
+                }
+
+                // Faça algo com a resposta
+            }
+        })
     }
 }
