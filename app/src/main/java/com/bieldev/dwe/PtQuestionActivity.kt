@@ -99,7 +99,7 @@ class PtQuestionActivity : AppCompatActivity() {
         filePaths.forEach { filePath ->
             val file = File(filePath)
             val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
-            multipartBodyBuilder.addFormDataPart("images", file.name, requestBody)
+            multipartBodyBuilder.addFormDataPart("file", file.name, requestBody)
         }
 
         val request = Request.Builder()
