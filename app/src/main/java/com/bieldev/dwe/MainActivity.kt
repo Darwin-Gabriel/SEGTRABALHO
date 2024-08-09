@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         val request = Request.Builder()
-            .url("https://api.bielsv.net/") // Substitua com a URL do seu servidor
+            .url("https://api.bielsv.net/")
             .post(requestBody)
             .build()
 
