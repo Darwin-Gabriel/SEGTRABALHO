@@ -1,5 +1,6 @@
 package com.bieldev.dwe
 
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -60,7 +61,8 @@ class RiskActivity : AppCompatActivity() {
 
         val buttonNext = findViewById<Button>(R.id.button_next)
         buttonNext.setOnClickListener {
-            Toast.makeText(this, "Próximo botão clicado", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, QuestionActivity::class.java)
+            startActivity(intent)
         }
     }
 
