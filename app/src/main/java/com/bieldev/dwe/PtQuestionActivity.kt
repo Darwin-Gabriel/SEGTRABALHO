@@ -26,6 +26,8 @@ class PtQuestionActivity : AppCompatActivity() {
         const val TAG = "PtQuestionActivity"
     }
 
+    private var protocolo: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pt_question)
@@ -39,9 +41,6 @@ class PtQuestionActivity : AppCompatActivity() {
                 .setMessage("FAVOR PARAR A OBRA IMEDIATAMENTE")
                 .setPositiveButton(android.R.string.ok) { dialog: DialogInterface, _: Int ->
                     dialog.dismiss()
-                    val intent = Intent(this, MainActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                    startActivity(intent)
                 }
                 .show()
         }
@@ -67,25 +66,21 @@ class PtQuestionActivity : AppCompatActivity() {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             val imageBitmap = data?.extras?.get("data") as? Bitmap
             if (imageBitmap != null) {
-                val location = intent.getStringExtra("location") ?: "UnknownLocation"
-                val secondPhotoPath = savePhoto(imageBitmap, location)
-                val firstPhotoPath = intent.getStringExtra("firstPhotoPath")
-                uploadFilesToServer(listOfNotNull(firstPhotoPath, secondPhotoPath))
+                val savedPhotoPath = savePhoto(imageBitmap, intent.getStringExtra("location") ?: "")
+                uploadFilesToServer(listOf(savedPhotoPath))
             } else {
-                Log.e(TAG, "Failed to get bitmap from camera")
+                Log.e(TAG, "Failed to capture image or result code is not OK")
             }
-        } else {
-            Log.e(TAG, "Failed to capture image or result code is not OK")
         }
     }
 
     private fun savePhoto(imageBitmap: Bitmap, location: String): String {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "JPEG_${location}_$timeStamp.jpg"
+        val imageFileName = "${location}_${timeStamp}.jpg"
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
-        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
+        val imageFile = File(storageDir, imageFileName)
         FileOutputStream(imageFile).use { out ->
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Set quality to 100
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Save with maximum quality JPEG compression
         }
         Log.d(TAG, "Photo saved at: ${imageFile.absolutePath}")
         return imageFile.absolutePath

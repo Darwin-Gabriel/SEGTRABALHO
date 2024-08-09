@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,20 +16,26 @@ import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.asRequestBody
 
 class QuestionActivity : AppCompatActivity() {
+
+    companion object {
+        const val TAG = "QuestionActivity"
+    }
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val REQUEST_IMAGE_CAPTURE = 1
     private val REQUEST_LOCATION_PERMISSION = 101
     private var currentPhotoPath: String = ""
+    private var firstPhotoPath: String = ""
+    private var locationString: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,8 +66,12 @@ class QuestionActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as Bitmap
-            getLocationAndSavePhoto(imageBitmap)
+            val imageBitmap = data?.extras?.get("data") as? Bitmap
+            if (imageBitmap != null) {
+                getLocationAndSavePhoto(imageBitmap)
+            } else {
+                Log.e(TAG, "Failed to capture image or result code is not OK")
+            }
         }
     }
 
@@ -69,31 +80,27 @@ class QuestionActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQUEST_LOCATION_PERMISSION)
         } else {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
-                    val locationString = "Lat_${location.latitude}_Lon_${location.longitude}"
-                    val photoPath = savePhotoWithLocation(imageBitmap, locationString)
-                    uploadFileToServer(photoPath)
-                } else {
-                    fusedLocationClient.lastLocation.addOnFailureListener {
-                        Toast.makeText(this, "Failed to get precise location, using approximate location", Toast.LENGTH_SHORT).show()
-                        val photoPath = savePhotoWithLocation(imageBitmap, "ApproximateLocation")
-                        uploadFileToServer(photoPath)
-                    }
+                location?.let {
+                    locationString = "${location.latitude}_${location.longitude}"
+                    savePhotoWithLocation(imageBitmap)
                 }
             }
         }
     }
 
-    private fun savePhotoWithLocation(imageBitmap: Bitmap, locationString: String): String {
+    private fun savePhotoWithLocation(imageBitmap: Bitmap) {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val imageFileName = "JPEG_${locationString}_$timeStamp.jpg"
+        val imageFileName = "${locationString}_${timeStamp}.jpg"
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
-        val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
+        val imageFile = File(storageDir, imageFileName)
         FileOutputStream(imageFile).use { out ->
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Save with maximum quality JPEG compression
         }
         currentPhotoPath = imageFile.absolutePath
-        return currentPhotoPath
+        if (firstPhotoPath.isEmpty()) {
+            firstPhotoPath = currentPhotoPath
+        }
+        uploadFileToServer(currentPhotoPath)
     }
 
     private fun uploadFileToServer(filePath: String) {
@@ -135,8 +142,8 @@ class QuestionActivity : AppCompatActivity() {
 
     private fun navigateToPtQuestionActivity() {
         val intent = Intent(this, PtQuestionActivity::class.java).apply {
-            putExtra("firstPhotoPath", currentPhotoPath)
-            putExtra("location", "Lat_Lon") // Replace with actual location if needed
+            putExtra("firstPhotoPath", firstPhotoPath)
+            putExtra("location", locationString)
         }
         startActivity(intent)
     }
