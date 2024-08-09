@@ -75,7 +75,7 @@ class PtQuestionActivity : AppCompatActivity() {
     }
 
     private fun savePhoto(imageBitmap: Bitmap, location: String): String {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: Long = System.currentTimeMillis() / 1000
         val imageFileName = "${location}_${timeStamp}.jpg"
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
         val imageFile = File(storageDir, imageFileName)

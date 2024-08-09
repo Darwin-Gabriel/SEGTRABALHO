@@ -89,7 +89,7 @@ class QuestionActivity : AppCompatActivity() {
     }
 
     private fun savePhotoWithLocation(imageBitmap: Bitmap) {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: Long = System.currentTimeMillis() / 1000
         val imageFileName = "${locationString}_${timeStamp}.jpg"
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
         val imageFile = File(storageDir, imageFileName)
