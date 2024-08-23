@@ -1,5 +1,6 @@
 package com.bieldev.dwe
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -14,6 +15,8 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import org.json.JSONException
+import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -43,11 +46,11 @@ class PtQuestionActivity : AppCompatActivity() {
         location = intent.getStringExtra("location") ?: ""
 
         buttonNo.setOnClickListener {
-            takePhoto()
+            showAlertAndNavigate(true)
         }
 
         buttonYes.setOnClickListener {
-            takePhoto()
+            takePhoto(false)
         }
 
         Log.d(TAG, "Received firstPhotoPath: $firstPhotoPath")
@@ -56,7 +59,7 @@ class PtQuestionActivity : AppCompatActivity() {
         fetchProtocol()
     }
 
-    private fun takePhoto() {
+    private fun takePhoto(tpt: Boolean) {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         if (takePictureIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
@@ -72,7 +75,7 @@ class PtQuestionActivity : AppCompatActivity() {
             if (imageBitmap != null) {
                 secondPhotoPath = savePhoto(imageBitmap, location)
                 protocol?.let {
-                    sendDataToServer(savedData, firstPhotoPath, secondPhotoPath, it)
+                    sendDataToServer(savedData, firstPhotoPath, secondPhotoPath, it, false)
                 }
             } else {
                 Log.e(TAG, "Failed to capture image or result code is not OK")
@@ -109,8 +112,23 @@ class PtQuestionActivity : AppCompatActivity() {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     response.body?.string()?.let { responseBody ->
-                        protocol = responseBody
-                        Log.d(TAG, "Fetched protocol: $protocol")
+                        try {
+                            // Check if the response is an integer
+                            val protocolInt = responseBody.toIntOrNull()
+                            if (protocolInt != null) {
+                                protocol = protocolInt.toString()
+                            } else {
+                                // Parse as JSONObject if not an integer
+                                val jsonObject = JSONObject(responseBody)
+                                protocol = jsonObject.getString("protocol")
+                            }
+                            Log.d(TAG, "Fetched protocol: $protocol")
+                        } catch (e: JSONException) {
+                            e.printStackTrace()
+                            runOnUiThread {
+                                Toast.makeText(this@PtQuestionActivity, "Failed to parse protocol", Toast.LENGTH_SHORT).show()
+                            }
+                        }
                     }
                 } else {
                     runOnUiThread {
@@ -121,19 +139,25 @@ class PtQuestionActivity : AppCompatActivity() {
         })
     }
 
-    private fun sendDataToServer(data: String, firstPhotoPath: String, secondPhotoPath: String, protocol: String) {
+    private fun sendDataToServer(data: String, firstPhotoPath: String, secondPhotoPath: String, protocol: String, tpt: Boolean) {
         val client = OkHttpClient()
         val no = data.split("&")[0].split("=")[1]
         val nr = data.split("&")[1].split("=")[1]
         val ne = data.split("&")[2].split("=")[1]
 
-        Log.d(TAG, "Sending data with PRT: $protocol, NO: $no, NR: $nr, NE: $ne")
+        Log.d(TAG, "Sending data with PRT: $protocol, NO: $no, NR: $nr, NE: $ne, TPT: $tpt")
+
         val f1: String = File(firstPhotoPath).name
-        val f2: String = File(secondPhotoPath).name
+        val f2: String = if (secondPhotoPath == "NULO") {
+            "NULO"
+        } else {
+            File(secondPhotoPath).name
+        }
         val protocol2: String = protocol.toString()
         val no2: String = no.toString()
         val nr2: String = nr.toString()
         val ne2: String = ne.toString()
+        val tpt2: String = tpt.toString()
         val url = "https://api.bielsv.net/sst"
         val formBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -143,10 +167,11 @@ class PtQuestionActivity : AppCompatActivity() {
             .addFormDataPart("NO", no2)
             .addFormDataPart("NR", nr2)
             .addFormDataPart("NE", ne2)
+            .addFormDataPart("TPT", tpt2)
             .build()
 
         val request = Request.Builder()
-            .url(url)
+            .url("https://api.bielsv.net/sst")
             .post(formBody)
             .build()
 
@@ -166,13 +191,30 @@ class PtQuestionActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     runOnUiThread {
                         Toast.makeText(this@PtQuestionActivity, "Data sent successfully", Toast.LENGTH_SHORT).show()
+                        navigateToRiskActivity()
                     }
                 } else {
                     runOnUiThread {
-                        Toast.makeText(this@PtQuestionActivity, "Failed to send data2", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@PtQuestionActivity, "Failed to send data", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         })
+    }
+
+    private fun showAlertAndNavigate(tpt: Boolean) {
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage("PARA A OBRA URGENTE")
+            .setPositiveButton("OK") { _, _ ->
+                protocol?.let {
+                    sendDataToServer(savedData, firstPhotoPath, "NULO", it, tpt)
+                }
+            }
+        builder.create().show()
+    }
+
+    private fun navigateToRiskActivity() {
+        val intent = Intent(this, RiskActivity::class.java)
+        startActivity(intent)
     }
 }
