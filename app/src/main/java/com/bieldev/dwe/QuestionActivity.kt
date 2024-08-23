@@ -15,14 +15,17 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import okhttp3.*
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.Response
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.text.SimpleDateFormat
-import java.util.*
 
 class QuestionActivity : AppCompatActivity() {
 
@@ -36,6 +39,7 @@ class QuestionActivity : AppCompatActivity() {
     private var currentPhotoPath: String = ""
     private var firstPhotoPath: String = ""
     private var locationString: String = ""
+    private lateinit var savedData: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +54,15 @@ class QuestionActivity : AppCompatActivity() {
         val buttonYes = findViewById<Button>(R.id.button_yes)
         val buttonNo = findViewById<Button>(R.id.button_no)
 
-        buttonYes.setOnClickListener { takePhoto() }
-        buttonNo.setOnClickListener { takePhoto() }
+        savedData = intent.getStringExtra("savedData") ?: ""
+        Log.d(TAG, "Received savedData: $savedData")
+
+        buttonYes.setOnClickListener {
+            takePhoto()
+        }
+        buttonNo.setOnClickListener {
+            takePhoto()
+        }
     }
 
     private fun takePhoto() {
@@ -81,8 +92,10 @@ class QuestionActivity : AppCompatActivity() {
         } else {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
-                    locationString = "${location.latitude}_${location.longitude}"
+                    locationString = "${it.latitude}_${it.longitude}"
                     savePhotoWithLocation(imageBitmap)
+                } ?: run {
+                    Toast.makeText(this, "Failed to get location", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -141,10 +154,11 @@ class QuestionActivity : AppCompatActivity() {
     }
 
     private fun navigateToPtQuestionActivity() {
-        val intent = Intent(this, PtQuestionActivity::class.java).apply {
-            putExtra("firstPhotoPath", firstPhotoPath)
-            putExtra("location", locationString)
-        }
+        val intent = Intent(this, PtQuestionActivity::class.java)
+        intent.putExtra("savedData", savedData)
+        intent.putExtra("firstPhotoPath", firstPhotoPath)
+        intent.putExtra("location", locationString)
+        Log.d(TAG, "Navigating to PtQuestionActivity with data: $savedData, firstPhotoPath: $firstPhotoPath, location: $locationString")
         startActivity(intent)
     }
 }

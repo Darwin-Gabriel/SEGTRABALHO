@@ -8,9 +8,15 @@ import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.Toast
+import android.widget.EditText
+import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
-import okhttp3.*
+import androidx.media3.common.util.UnstableApi
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONArray
 import java.io.IOException
 
@@ -18,12 +24,18 @@ class RiskActivity : AppCompatActivity() {
 
     private lateinit var adapter: ArrayAdapter<String>
     private val client = OkHttpClient()
+    private lateinit var savedData: String
 
+    @OptIn(UnstableApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_risk)
 
         val editTextWorkNumber = findViewById<AutoCompleteTextView>(R.id.edit_text_work_number)
+        val editTextStreetName = findViewById<EditText>(R.id.edit_text_street_name)
+        val editTextManagerName = findViewById<EditText>(R.id.edit_text_supervisor_name)
+        val buttonNext = findViewById<Button>(R.id.button_next)
+
         adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, mutableListOf())
         editTextWorkNumber.setAdapter(adapter)
 
@@ -59,9 +71,14 @@ class RiskActivity : AppCompatActivity() {
             }
         }
 
-        val buttonNext = findViewById<Button>(R.id.button_next)
         buttonNext.setOnClickListener {
+            val workNumber = editTextWorkNumber.text.toString()
+            val streetName = editTextStreetName.text.toString()
+            val managerName = editTextManagerName.text.toString()
+            savedData = "NO=$workNumber&NR=$streetName&NE=$managerName"
             val intent = Intent(this, QuestionActivity::class.java)
+            intent.putExtra("savedData", savedData)
+            androidx.media3.common.util.Log.d("RiskActivity", "Navigating to QuestionActivity with data: $savedData")
             startActivity(intent)
         }
     }
