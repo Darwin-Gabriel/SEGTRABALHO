@@ -5,7 +5,10 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
@@ -13,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import okhttp3.Call
@@ -40,6 +44,7 @@ class QuestionActivity : AppCompatActivity() {
     private var firstPhotoPath: String = ""
     private var locationString: String = ""
     private lateinit var savedData: String
+    private var isNoButtonClicked: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,15 +63,19 @@ class QuestionActivity : AppCompatActivity() {
         Log.d(TAG, "Received savedData: $savedData")
 
         buttonYes.setOnClickListener {
+            isNoButtonClicked = false
             takePhoto()
         }
         buttonNo.setOnClickListener {
+            isNoButtonClicked = true
             takePhoto()
         }
     }
 
     private fun takePhoto() {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        val photoURI = getPhotoFileUri()
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
         if (takePictureIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
         } else {
@@ -74,15 +83,27 @@ class QuestionActivity : AppCompatActivity() {
         }
     }
 
+    private fun getPhotoFileUri(): Uri {
+        val timeStamp: Long = System.currentTimeMillis() / 1000
+        val imageFileName = "JPEG_${timeStamp}.jpg"
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: throw IOException("External Storage not available")
+        val imageFile = File(storageDir, imageFileName)
+        currentPhotoPath = imageFile.absolutePath
+        return FileProvider.getUriForFile(this, "com.bieldev.dwe.fileprovider", imageFile)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as? Bitmap
+            val imageBitmap = BitmapFactory.decodeFile(currentPhotoPath)
             if (imageBitmap != null) {
+                firstPhotoPath = currentPhotoPath
                 getLocationAndSavePhoto(imageBitmap)
             } else {
-                Log.e(TAG, "Failed to capture image or result code is not OK")
+                Log.e(TAG, "Failed to decode the image file")
             }
+        } else {
+            Log.e(TAG, "Failed to capture image or result code is not OK")
         }
     }
 
@@ -92,10 +113,8 @@ class QuestionActivity : AppCompatActivity() {
         } else {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                 location?.let {
-                    locationString = "${it.latitude}_${it.longitude}"
+                    locationString = "${it.latitude},${it.longitude}"
                     savePhotoWithLocation(imageBitmap)
-                } ?: run {
-                    Toast.makeText(this, "Failed to get location", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -107,7 +126,7 @@ class QuestionActivity : AppCompatActivity() {
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
         val imageFile = File(storageDir, imageFileName)
         FileOutputStream(imageFile).use { out ->
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Save with maximum quality JPEG compression
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
         }
         currentPhotoPath = imageFile.absolutePath
         if (firstPhotoPath.isEmpty()) {
@@ -134,19 +153,19 @@ class QuestionActivity : AppCompatActivity() {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
                 runOnUiThread {
-                    Toast.makeText(this@QuestionActivity, "Failed to upload photo", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@QuestionActivity, "Failed to upload file", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     runOnUiThread {
-                        Toast.makeText(this@QuestionActivity, "Photo uploaded successfully", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@QuestionActivity, "File uploaded successfully", Toast.LENGTH_SHORT).show()
                         navigateToPtQuestionActivity()
                     }
                 } else {
                     runOnUiThread {
-                        Toast.makeText(this@QuestionActivity, "Failed to upload photo", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@QuestionActivity, "Failed to upload file", Toast.LENGTH_SHORT).show()
                     }
                 }
             }

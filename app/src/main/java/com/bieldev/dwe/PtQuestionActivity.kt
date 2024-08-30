@@ -3,20 +3,22 @@ package com.bieldev.dwe
 import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -33,6 +35,7 @@ class PtQuestionActivity : AppCompatActivity() {
     private lateinit var secondPhotoPath: String
     private lateinit var location: String
     private var protocol: String? = null
+    private var currentPhotoPath: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +64,7 @@ class PtQuestionActivity : AppCompatActivity() {
 
     private fun takePhoto(tpt: Boolean) {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, getPhotoFileUri())
         if (takePictureIntent.resolveActivity(packageManager) != null) {
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
         } else {
@@ -68,18 +72,30 @@ class PtQuestionActivity : AppCompatActivity() {
         }
     }
 
+    private fun getPhotoFileUri(): Uri {
+        val timeStamp: Long = System.currentTimeMillis() / 1000
+        val imageFileName = "JPEG_${timeStamp}.jpg"
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES) ?: throw IOException("External Storage not available")
+        val imageFile = File(storageDir, imageFileName)
+        currentPhotoPath = imageFile.absolutePath
+        return FileProvider.getUriForFile(this, "com.bieldev.dwe.fileprovider", imageFile)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as? Bitmap
+            // Usar BitmapFactory.decodeFile() para decodificar a imagem do caminho do arquivo
+            val imageBitmap = BitmapFactory.decodeFile(currentPhotoPath)
             if (imageBitmap != null) {
-                secondPhotoPath = savePhoto(imageBitmap, location)
+                secondPhotoPath = currentPhotoPath
                 protocol?.let {
                     sendDataToServer(savedData, firstPhotoPath, secondPhotoPath, it, false)
                 }
             } else {
-                Log.e(TAG, "Failed to capture image or result code is not OK")
+                Log.e(TAG, "Failed to decode the image file")
             }
+        } else {
+            Log.e(TAG, "Failed to capture image or result code is not OK")
         }
     }
 
@@ -89,7 +105,7 @@ class PtQuestionActivity : AppCompatActivity() {
         val storageDir: File = getExternalFilesDir(null) ?: throw IOException("External Storage not available")
         val imageFile = File(storageDir, imageFileName)
         FileOutputStream(imageFile).use { out ->
-            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out) // Save with maximum quality JPEG compression
         }
         Log.d(TAG, "Photo saved at: ${imageFile.absolutePath}")
         return imageFile.absolutePath
@@ -104,35 +120,12 @@ class PtQuestionActivity : AppCompatActivity() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 e.printStackTrace()
-                runOnUiThread {
-                    Toast.makeText(this@PtQuestionActivity, "Failed to fetch protocol", Toast.LENGTH_SHORT).show()
-                }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     response.body?.string()?.let { responseBody ->
-                        try {
-                            // Check if the response is an integer
-                            val protocolInt = responseBody.toIntOrNull()
-                            if (protocolInt != null) {
-                                protocol = protocolInt.toString()
-                            } else {
-                                // Parse as JSONObject if not an integer
-                                val jsonObject = JSONObject(responseBody)
-                                protocol = jsonObject.getString("protocol")
-                            }
-                            Log.d(TAG, "Fetched protocol: $protocol")
-                        } catch (e: JSONException) {
-                            e.printStackTrace()
-                            runOnUiThread {
-                                Toast.makeText(this@PtQuestionActivity, "Failed to parse protocol", Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
-                } else {
-                    runOnUiThread {
-                        Toast.makeText(this@PtQuestionActivity, "Failed to fetch protocol", Toast.LENGTH_SHORT).show()
+                        protocol = responseBody
                     }
                 }
             }
@@ -147,11 +140,12 @@ class PtQuestionActivity : AppCompatActivity() {
 
         Log.d(TAG, "Sending data with PRT: $protocol, NO: $no, NR: $nr, NE: $ne, TPT: $tpt")
 
-        val f1: String = File(firstPhotoPath).name
+        // Usar a localização em vez do nome do arquivo
+        val f1: String = location
         val f2: String = if (secondPhotoPath == "NULO") {
             "NULO"
         } else {
-            File(secondPhotoPath).name
+            location
         }
         val protocol2: String = protocol.toString()
         val no2: String = no.toString()
@@ -171,7 +165,7 @@ class PtQuestionActivity : AppCompatActivity() {
             .build()
 
         val request = Request.Builder()
-            .url("https://api.bielsv.net/sst")
+            .url(url)
             .post(formBody)
             .build()
 
@@ -184,14 +178,10 @@ class PtQuestionActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
-                Log.d(TAG, "Response code: ${response.code}")
-                response.body?.string()?.let { responseBody ->
-                    Log.d(TAG, "Response body: $responseBody")
-                }
                 if (response.isSuccessful) {
                     runOnUiThread {
                         Toast.makeText(this@PtQuestionActivity, "Data sent successfully", Toast.LENGTH_SHORT).show()
-                        navigateToRiskActivity()
+                        navigateToRiskActivity() // Navegar para RiskActivity após o envio bem-sucedido
                     }
                 } else {
                     runOnUiThread {
